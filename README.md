@@ -1,4 +1,4 @@
-# Flare Trading Network (Public Prototype )
+# Flare Trading Network (Public Prototype)
 
 This is a rapid prototype of **Flare**, a scaled-down, speed-optimized, static lightweight version of **The Ark**.
 
