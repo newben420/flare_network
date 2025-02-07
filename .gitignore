@@ -1,0 +1,4 @@
+**/node_modules
+**/storage_*
+**/collected_data_*
+!pulse/storage_*

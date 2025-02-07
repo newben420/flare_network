@@ -1,0 +1,1 @@
+{"systems":[{"base":"../gnome","script":"index.js","env":".env","port":"4000","title":"GNOME","id":"ecf7aa7d","isRunning":false},{"base":"../flux","script":"index.js","env":".env","port":"4050","title":"FLUX","isRunning":false,"id":"10cadb89"},{"base":"../grid","script":"index.js","env":".env","port":"4100","title":"GRID","isRunning":false,"id":"f74156fc"}]}
