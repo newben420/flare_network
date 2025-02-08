@@ -91,6 +91,14 @@ class ExtendedMainStrategy {
         const goodSell = bbSell;
         const volatilityPerc = (atr.length > 0 ? atr[atr.length - 1] : 0) / latestRate * 100;
         const TPSLPerc = Math.abs(((_l = psar[psar.length - 1]) !== null && _l !== void 0 ? _l : latestRate) - latestRate) / latestRate * 100;
+        ExtendedMainStrategy.TP.push(TPSLPerc);
+        ExtendedMainStrategy.VOL.push(volatilityPerc);
+        if (ExtendedMainStrategy.TP.length > dirLength) {
+            ExtendedMainStrategy.TP = ExtendedMainStrategy.TP.slice(ExtendedMainStrategy.TP.length - dirLength);
+        }
+        if (ExtendedMainStrategy.VOL.length > dirLength) {
+            ExtendedMainStrategy.VOL = ExtendedMainStrategy.VOL.slice(ExtendedMainStrategy.VOL.length - dirLength);
+        }
         if (overallBull) {
             /**
              * BULLISH TREND
@@ -134,9 +142,7 @@ class ExtendedMainStrategy {
                 desc = "BULL_EXIT";
             }
             else if ((!weak) || supportBull || goodBuy) {
-                const volDir = atr.slice(atr.length - dirLength).map((a) => a / latestRate * 100);
-                const TPDir = psar.slice(psar.length - dirLength).map((a) => Math.abs(a - latestRate) / latestRate * 100);
-                buy = `${(0, direction_1.clearDirection)(volDir, dirLength)}${(0, direction_1.clearDirection)(TPDir, dirLength)}` != '11';
+                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL, dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP, dirLength)}` != '11';
                 sell = false;
                 desc = "BULL_ENTRY";
             }
@@ -187,9 +193,7 @@ class ExtendedMainStrategy {
             // const rev = (BTOversold && divergence) || (BTOversold && candlestickBullishReversal) || (divergence && candlestickBullishReversal);
             // const reversal = OROverSold ? rev : false;
             if (reversal) {
-                const volDir = atr.slice(atr.length - dirLength).map((a) => a / latestRate * 100);
-                const TPDir = psar.slice(psar.length - dirLength).map((a) => Math.abs(a - latestRate) / latestRate * 100);
-                buy = `${(0, direction_1.clearDirection)(volDir, dirLength)}${(0, direction_1.clearDirection)(TPDir, dirLength)}` == '11';
+                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL, dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP, dirLength)}` == '11';
                 sell = false;
                 desc = "BEAR_ENTRY";
             }
@@ -236,3 +240,5 @@ class ExtendedMainStrategy {
     }
 }
 exports.ExtendedMainStrategy = ExtendedMainStrategy;
+ExtendedMainStrategy.TP = [];
+ExtendedMainStrategy.VOL = [];
