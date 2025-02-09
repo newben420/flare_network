@@ -91,13 +91,19 @@ class ExtendedMainStrategy {
         const goodSell = bbSell;
         const volatilityPerc = (atr.length > 0 ? atr[atr.length - 1] : 0) / latestRate * 100;
         const TPSLPerc = Math.abs(((_l = psar[psar.length - 1]) !== null && _l !== void 0 ? _l : latestRate) - latestRate) / latestRate * 100;
-        ExtendedMainStrategy.TP.push(TPSLPerc);
-        ExtendedMainStrategy.VOL.push(volatilityPerc);
-        if (ExtendedMainStrategy.TP.length > dirLength) {
-            ExtendedMainStrategy.TP = ExtendedMainStrategy.TP.slice(ExtendedMainStrategy.TP.length - dirLength);
+        if (!ExtendedMainStrategy.TP[symbol]) {
+            ExtendedMainStrategy.TP[symbol] = [];
         }
-        if (ExtendedMainStrategy.VOL.length > dirLength) {
-            ExtendedMainStrategy.VOL = ExtendedMainStrategy.VOL.slice(ExtendedMainStrategy.VOL.length - dirLength);
+        if (!ExtendedMainStrategy.VOL[symbol]) {
+            ExtendedMainStrategy.VOL[symbol] = [];
+        }
+        ExtendedMainStrategy.TP[symbol].push(TPSLPerc);
+        ExtendedMainStrategy.VOL[symbol].push(volatilityPerc);
+        if (ExtendedMainStrategy.TP[symbol].length > dirLength) {
+            ExtendedMainStrategy.TP[symbol] = ExtendedMainStrategy.TP[symbol].slice(ExtendedMainStrategy.TP[symbol].length - dirLength);
+        }
+        if (ExtendedMainStrategy.VOL[symbol].length > dirLength) {
+            ExtendedMainStrategy.VOL[symbol] = ExtendedMainStrategy.VOL[symbol].slice(ExtendedMainStrategy.VOL[symbol].length - dirLength);
         }
         if (overallBull) {
             /**
@@ -142,7 +148,7 @@ class ExtendedMainStrategy {
                 desc = "BULL_EXIT";
             }
             else if ((!weak) || supportBull || goodBuy) {
-                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL, dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP, dirLength)}` != '11';
+                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL[symbol], dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP[symbol], dirLength)}` != '11';
                 sell = false;
                 desc = "BULL_ENTRY";
             }
@@ -193,7 +199,7 @@ class ExtendedMainStrategy {
             // const rev = (BTOversold && divergence) || (BTOversold && candlestickBullishReversal) || (divergence && candlestickBullishReversal);
             // const reversal = OROverSold ? rev : false;
             if (reversal) {
-                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL, dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP, dirLength)}` == '11';
+                buy = `${(0, direction_1.clearDirection)(ExtendedMainStrategy.VOL[symbol], dirLength)}${(0, direction_1.clearDirection)(ExtendedMainStrategy.TP[symbol], dirLength)}` == '11';
                 sell = false;
                 desc = "BEAR_ENTRY";
             }
@@ -240,5 +246,5 @@ class ExtendedMainStrategy {
     }
 }
 exports.ExtendedMainStrategy = ExtendedMainStrategy;
-ExtendedMainStrategy.TP = [];
-ExtendedMainStrategy.VOL = [];
+ExtendedMainStrategy.TP = {};
+ExtendedMainStrategy.VOL = {};
