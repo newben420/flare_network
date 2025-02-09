@@ -58,7 +58,7 @@ PersistenceDriver.updatePair = (pair, f) => {
                 f(r);
             }
             else {
-                pair = Object.assign(Object.assign({}, pair), { status: (_b = pair.status) !== null && _b !== void 0 ? _b : true, buy: false, sell: false, lu: Date.now() });
+                pair = Object.assign(Object.assign({}, pair), { status: (_b = pair.status) !== null && _b !== void 0 ? _b : false, buy: false, sell: false, lu: Date.now() });
                 _a.db.next(Object.assign(Object.assign({}, _a.db.value), { pairs: _a.db.value.pairs.concat([pair]) }));
                 _a.registerChanges();
                 f(res_1.GRes.succ("SUCCESS"));
