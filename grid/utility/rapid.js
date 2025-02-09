@@ -66,7 +66,7 @@ Rapid.close = (trade, valuation, fx) => __awaiter(void 0, void 0, void 0, functi
             if (closed) {
                 _a.dataA.splice(index, 1);
                 _a.closing = false;
-                fx(res_1.GRes.err("SUCCESS"));
+                fx(res_1.GRes.succ("SUCCESS"));
             }
             else {
                 _a.closing = false;
