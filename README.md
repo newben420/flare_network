@@ -160,6 +160,15 @@ The components are as follows:
 
     ---
 
+5. **Snap (Redacted for improvement)**  
+
+    A nice trading experience is achieved when **Flux** and **Grid** are combined into one component called **Snap**. It leverages Flux's ability to utilize entry signals from all pairs on the Gnome, Grid's abilities to not get stuck trying to close a single trade, and recover.
+
+    While testing in low risk conditions (one open trade at a time per pair, high rapid timeout of 24 hours, low numerical TP of 0.7, max grid of 10, USDT 1000, well-established coins), it was able to close 120 trades in 11 hours (some trades very much outlasted others), scalping off just an average of 0.7% from each trade and making a net profit of 8.4% (Total PnL of 84% divided by grid length of 10, USDT 84).
+
+    ---
+
+
 ## Prerequisites
 
 - **Node.js:** Version 18 or higher
