@@ -16,12 +16,13 @@ class SystemL {
 class RuntimeManager {
 }
 exports.RuntimeManager = RuntimeManager;
-RuntimeManager.running = [];
+// private static running: SystemL[] = [];
+RuntimeManager.running = {};
 RuntimeManager.logCache = [];
 RuntimeManager.getLogs = () => {
     let obj = {};
-    RuntimeManager.running.forEach(x => {
-        obj[x.id] = x.logs;
+    Object.keys(RuntimeManager.running).forEach(key => {
+        obj[key] = RuntimeManager.running[key].logs;
     });
     return obj;
 };
@@ -47,7 +48,7 @@ RuntimeManager.sysSub = persistence_driver_1.PersistenceDriver.dbEvent.subscribe
         let toOpenIDs = [];
         let systemIDsOpen = x.systems.filter(x => x.isRunning).map(x => { var _a; return (_a = x.id) !== null && _a !== void 0 ? _a : ""; });
         let systemIDsClose = x.systems.filter(x => !x.isRunning).map(x => { var _a; return (_a = x.id) !== null && _a !== void 0 ? _a : ""; });
-        let runningIDs = RuntimeManager.running.map(x => { var _a; return (_a = x.id) !== null && _a !== void 0 ? _a : ""; });
+        let runningIDs = Object.keys(RuntimeManager.running);
         runningIDs.forEach(x => {
             if (systemIDsOpen.indexOf(x) == -1) {
                 toCloseIDs.push(x);
@@ -60,42 +61,43 @@ RuntimeManager.sysSub = persistence_driver_1.PersistenceDriver.dbEvent.subscribe
         });
         if (toCloseIDs.length > 0) {
             RuntimeManager.deactivateRunTimes(toCloseIDs);
-            RuntimeManager.running = RuntimeManager.running.filter(x => toCloseIDs.indexOf(x.id) == -1);
+            toCloseIDs.forEach(x => {
+                delete RuntimeManager.running[x];
+            });
         }
         if (toOpenIDs.length > 0) {
             toOpenIDs.forEach(x => {
-                RuntimeManager.running.push({ id: x, logs: [], process: null });
+                RuntimeManager.running[x] = { logs: [], process: null };
             });
             RuntimeManager.activateRunTimes();
         }
     }
 });
 RuntimeManager.deactivateRunTimes = (ids) => {
-    RuntimeManager.running.forEach((x, i) => {
+    Object.keys(RuntimeManager.running).forEach(x => {
         var _a;
-        if (ids.indexOf(x.id) != -1) {
-            (_a = RuntimeManager.running[i].process) === null || _a === void 0 ? void 0 : _a.kill("SIGTERM");
-            RuntimeManager.running[i].process = null;
-            RuntimeManager.running[i].logs = [];
+        if (ids.indexOf(x) != -1) {
+            (_a = RuntimeManager.running[x].process) === null || _a === void 0 ? void 0 : _a.kill("SIGTERM");
+            RuntimeManager.running[x].process = null;
+            RuntimeManager.running[x].logs = [];
         }
     });
 };
 RuntimeManager.deactivateAll = () => {
-    RuntimeManager.running.forEach((x, i) => {
+    Object.keys(RuntimeManager.running).forEach(x => {
         var _a;
-        (_a = RuntimeManager.running[i].process) === null || _a === void 0 ? void 0 : _a.kill("SIGTERM");
-        RuntimeManager.running[i].process = null;
-        RuntimeManager.running[i].logs = [];
+        (_a = RuntimeManager.running[x].process) === null || _a === void 0 ? void 0 : _a.kill("SIGTERM");
+        RuntimeManager.running[x].process = null;
+        RuntimeManager.running[x].logs = [];
     });
-    RuntimeManager.running = [];
+    RuntimeManager.running = {};
 };
 RuntimeManager.activateRunTimes = () => {
-    RuntimeManager.running.forEach((x, i) => {
-        if (x.process === null) {
-            persistence_driver_1.PersistenceDriver.getSystemByID(x.id, r => {
+    Object.keys(RuntimeManager.running).forEach(x => {
+        if (RuntimeManager.running[x].process === null) {
+            persistence_driver_1.PersistenceDriver.getSystemByID(x, r => {
                 var _a;
                 if (r.succ) {
-                    // const script = path.resolve(BASE_DIR(), r.message.)
                     let script = path_1.default.resolve((0, site_1.BASE_DIR)(), r.message.base, r.message.script);
                     let envFile = path_1.default.resolve((0, site_1.BASE_DIR)(), r.message.base, (_a = r.message.env) !== null && _a !== void 0 ? _a : ".env");
                     let env = {};
@@ -103,38 +105,39 @@ RuntimeManager.activateRunTimes = () => {
                         env = (0, dotenv_1.parse)((0, fs_1.readFileSync)(envFile));
                     }
                     if ((0, fs_1.existsSync)(script)) {
-                        RuntimeManager.running[i].process = (0, child_process_1.spawn)(site_1.Site.nodePath || "node", [script], { env, cwd: path_1.default.resolve((0, site_1.BASE_DIR)(), r.message.base) });
-                        RuntimeManager.running[i].process.stdout.on('data', (data) => {
-                            if (RuntimeManager.running[i]) {
+                        RuntimeManager.running[x].process = (0, child_process_1.spawn)(site_1.Site.nodePath || "node", [script], { env, cwd: path_1.default.resolve((0, site_1.BASE_DIR)(), r.message.base) });
+                        RuntimeManager.running[x].process.stdout.on('data', (data) => {
+                            if (RuntimeManager.running[x]) {
                                 let log = data.toString().replace(/[\n\s]+$/g, '');
-                                RuntimeManager.running[i].logs.push(log);
+                                RuntimeManager.running[x].logs.push(log);
                                 RuntimeManager.logCache.push({ id: r.message.id, log });
-                                if (RuntimeManager.running[i].logs.length > site_1.Site.maxLogsPerSystem) {
-                                    RuntimeManager.running[i].logs = RuntimeManager.running[i].logs.slice(RuntimeManager.running[i].logs.length - site_1.Site.maxLogsPerSystem);
+                                if (RuntimeManager.running[x].logs.length > site_1.Site.maxLogsPerSystem) {
+                                    RuntimeManager.running[x].logs = RuntimeManager.running[x].logs.slice(RuntimeManager.running[x].logs.length - site_1.Site.maxLogsPerSystem);
                                 }
                             }
                         });
-                        RuntimeManager.running[i].process.stderr.on('data', (data) => {
-                            if (RuntimeManager.running[i]) {
+                        RuntimeManager.running[x].process.stderr.on('data', (data) => {
+                            if (RuntimeManager.running[x]) {
                                 let log = data.toString().replace(/[\n\s]+$/g, '');
-                                RuntimeManager.running[i].logs.push(log);
+                                RuntimeManager.running[x].logs.push(log);
                                 RuntimeManager.logCache.push({ id: r.message.id, log });
-                                if (RuntimeManager.running[i].logs.length > site_1.Site.maxLogsPerSystem) {
-                                    RuntimeManager.running[i].logs = RuntimeManager.running[i].logs.slice(RuntimeManager.running[i].logs.length - site_1.Site.maxLogsPerSystem);
+                                if (RuntimeManager.running[x].logs.length > site_1.Site.maxLogsPerSystem) {
+                                    RuntimeManager.running[x].logs = RuntimeManager.running[x].logs.slice(RuntimeManager.running[x].
+                                        logs.length - site_1.Site.maxLogsPerSystem);
                                 }
                             }
                         });
-                        RuntimeManager.running[i].process.on('error', (data) => {
-                            if (RuntimeManager.running[i]) {
+                        RuntimeManager.running[x].process.on('error', (data) => {
+                            if (RuntimeManager.running[x]) {
                                 let log = data.toString().replace(/[\n\s]+$/g, '');
-                                RuntimeManager.running[i].logs.push(log);
+                                RuntimeManager.running[x].logs.push(log);
                                 RuntimeManager.logCache.push({ id: r.message.id, log });
-                                if (RuntimeManager.running[i].logs.length > site_1.Site.maxLogsPerSystem) {
-                                    RuntimeManager.running[i].logs = RuntimeManager.running[i].logs.slice(RuntimeManager.running[i].logs.length - site_1.Site.maxLogsPerSystem);
+                                if (RuntimeManager.running[x].logs.length > site_1.Site.maxLogsPerSystem) {
+                                    RuntimeManager.running[x].logs = RuntimeManager.running[x].logs.slice(RuntimeManager.running[x].logs.length - site_1.Site.maxLogsPerSystem);
                                 }
                             }
                         });
-                        RuntimeManager.running[i].process.on('close', (data) => {
+                        RuntimeManager.running[x].process.on('close', (data) => {
                             persistence_driver_1.PersistenceDriver.updateSystem(Object.assign(Object.assign({}, r.message), { isRunning: false }));
                         });
                     }
