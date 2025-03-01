@@ -20,6 +20,9 @@ const express_session_1 = __importDefault(require("express-session"));
 const auth_1 = require("./utility/auth");
 const http_proxy_middleware_1 = require("http-proxy-middleware");
 const stream_1 = require("stream");
+const log_persistence_1 = require("./utility/log_persistence");
+const fs_1 = require("fs");
+const Log_1 = require("./utility/Log");
 stream_1.EventEmitter.setMaxListeners(1000);
 const sessMid = (0, express_session_1.default)({
     secret: site_1.Site.sessionSecret,
@@ -69,6 +72,19 @@ app.use((req, res, next) => {
 app.use(express_1.default.static(path_1.default.resolve(__dirname, "public"), {
     maxAge: '1y',
 }));
+app.get("/logs/:id", (req, res) => {
+    const id = req.params.id;
+    res.sendFile(path_1.default.resolve(log_persistence_1.LogPersistence.logDir, `${id}.txt`));
+});
+app.get("/logs/:id/delete", (req, res) => {
+    const id = req.params.id;
+    (0, fs_1.unlink)(path_1.default.resolve(log_persistence_1.LogPersistence.logDir, `${id}.txt`), err => {
+        if (err) {
+            Log_1.Log.dev(err);
+        }
+        res.redirect("/");
+    });
+});
 app.use("/api", api_1.apiRoute);
 app.use(/^\/(\d{4,5})/, (req, res, next) => {
     const portMatch = req.originalUrl.match(/(\d{4,5})/);
@@ -140,8 +156,16 @@ server.listen(port, () => {
             (0, exports.KILLSERVER)();
         }
         else {
-            socket_1.MySocket.initialize(io);
-            console.log(`Process running at http://localhost:${port}`);
+            log_persistence_1.LogPersistence.init().then(succ => {
+                if (!succ) {
+                    console.log(`Failed to initialize log persistence.`);
+                    (0, exports.KILLSERVER)();
+                }
+                else {
+                    socket_1.MySocket.initialize(io);
+                    console.log(`Process running at http://localhost:${port}`);
+                }
+            });
         }
     });
 });

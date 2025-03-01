@@ -2,3 +2,4 @@
 **/storage_*
 **/collected_data_*
 !pulse/storage_*
+**/app_logs

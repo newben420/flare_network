@@ -11,6 +11,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
 const dotenv_1 = require("dotenv");
 const Log_1 = require("./Log");
+const log_persistence_1 = require("./log_persistence");
 class SystemL {
 }
 class RuntimeManager {
@@ -39,6 +40,7 @@ RuntimeManager.getCache = () => {
             obj[x.id].push(x.log);
         });
         RuntimeManager.logCache = [];
+        log_persistence_1.LogPersistence.entry(obj);
         return obj;
     }
 };
